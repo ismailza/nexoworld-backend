@@ -16,8 +16,8 @@ export class User implements IUser {
   gender: Gender;
   @Column({ unique: true })
   email: string;
-  @Column()
-  avatar: string;
+  @Column({ nullable: true })
+  avatar?: string;
   @Column({ unique: true })
   username: string;
   @Column()
