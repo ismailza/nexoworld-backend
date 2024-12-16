@@ -7,6 +7,7 @@ import { TokenService } from './token.service';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/entities/user.entity';
+import { InvalidCredentialsException, UserAlreadyExistsException } from 'src/exceptions/auth.exception';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +17,7 @@ export class AuthService {
   async login(request: LoginRequest): Promise<AuthResponse> {
     const user = await this.userService.findByUsernameOrEmail(request.username);
     if (!user || !bcrypt.compareSync(request.password, user.password)) {
-      return null;
+      throw new InvalidCredentialsException();
     }
     const tokens = await this.tokenService.generateTokenPair(user);
     return {
@@ -27,8 +28,12 @@ export class AuthService {
   }
 
   async register(request: RegisterRequest): Promise<User> {
-    if (await this.userService.findByUsername(request.username) || await this.userService.findByEmail(request.email)) {
-      return null;
+    if (await this.userService.findByUsername(request.username)) {
+      throw new UserAlreadyExistsException('User with this username already exists');
+    }
+
+    if (await this.userService.findByEmail(request.email)) {
+      throw new UserAlreadyExistsException('User with this email already exists');
     }
 
     const user = new User();

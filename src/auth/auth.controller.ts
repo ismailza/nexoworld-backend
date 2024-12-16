@@ -11,12 +11,6 @@ export class AuthController {
   @Post('login')
   async login(@Body() request: LoginRequest): Promise<AppResponse> {
     const response = await this.authService.login(request);
-    if (!response) {
-      return {
-        success: false,
-        message: 'Invalid credentials'
-      };
-    }
     return {
       success: true,
       result: response,
@@ -26,12 +20,7 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() request: RegisterRequest): Promise<AppResponse> {
-    if (!await this.authService.register(request)) {
-      return {
-        success: false,
-        message: 'Username or email already exists'
-      };
-    }
+    await this.authService.register(request);
     return {
       success: true,
       message: 'Registration successful'
