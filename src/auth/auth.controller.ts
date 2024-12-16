@@ -3,6 +3,8 @@ import { AuthService } from './auth.service';
 import { LoginRequest } from 'src/interfaces/login-request.interface';
 import { RegisterRequest } from 'src/interfaces/register-request.interface';
 import { AppResponse } from 'src/interfaces/app-response.interface';
+import { RefreshRequest } from 'src/interfaces/refresh-request.interface';
+import { AuthResponse } from 'src/interfaces/auth-response.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -10,7 +12,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() request: LoginRequest): Promise<AppResponse> {
-    const response = await this.authService.login(request);
+    const response: AuthResponse = await this.authService.login(request);
     return {
       success: true,
       result: response,
@@ -28,8 +30,13 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(): Promise<AppResponse> {
-    return this.authService.refresh();
+  async refresh(@Body() request: RefreshRequest): Promise<AppResponse> {
+    const response: AuthResponse = await this.authService.refresh(request);
+    return {
+      success: true,
+      result: response,
+      message: 'Token refreshed'
+    }
   }
 
 }

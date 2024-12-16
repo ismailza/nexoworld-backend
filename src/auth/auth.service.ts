@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { AppResponse } from 'src/interfaces/app-response.interface';
 import { AuthResponse } from 'src/interfaces/auth-response.interface';
 import { LoginRequest } from 'src/interfaces/login-request.interface';
 import { RegisterRequest } from 'src/interfaces/register-request.interface';
@@ -7,7 +6,8 @@ import { TokenService } from './token.service';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/entities/user.entity';
-import { InvalidCredentialsException, UserAlreadyExistsException } from 'src/exceptions/auth.exception';
+import { InvalidCredentialsException, InvalidTokenException, UserAlreadyExistsException } from 'src/exceptions/auth.exception';
+import { RefreshRequest } from 'src/interfaces/refresh-request.interface';
 
 @Injectable()
 export class AuthService {
@@ -46,9 +46,37 @@ export class AuthService {
     return await this.userService.create(user);
   }
 
-  async refresh(): Promise<AppResponse> {
-    // TODO: Implement this method
-    return null;
+  async refresh(request: RefreshRequest): Promise<AuthResponse> {
+    const isRefreshToken = await this.tokenService.validateTokenType(
+      request.refreshToken,
+      'refresh'
+    );
+    
+    if (!isRefreshToken) {
+      throw new InvalidTokenException('Invalid token type');
+    }
+
+    try {
+      // Verify and decode the refresh token
+      const decoded = await this.tokenService.verifyToken(request.refreshToken);
+      
+      // Get user from decoded token
+      const user = await this.userService.findById(decoded.sub);
+      if (!user) {
+        throw new InvalidTokenException('User not found');
+      }
+
+      // Generate new token pair
+      const tokens = await this.tokenService.generateTokenPair(user);
+
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: request.refreshToken,
+        user: user
+      };
+    } catch (error) {
+      throw new InvalidTokenException('Invalid or expired refresh token');
+    }
   }
 
 }
