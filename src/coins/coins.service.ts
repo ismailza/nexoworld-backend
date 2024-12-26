@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Coin } from './coins/entities/coin.entity';
-import { CoinLocation } from './coins/entities/coin-location.entity';
-import { CreateCoinDto } from './coins/dto/create-coin.dto';
-import { CreateCoinLocationDto } from './coins/dto/create-coin-location.dto';
+import { Coin } from './entities/coin.entity';
+import { CoinLocation } from './entities/coin-location.entity';
+import { CreateCoinDto } from './dto/create-coin.dto';
+import { CreateCoinLocationDto } from './dto/create-coin-location.dto';
 
 @Injectable()
 export class CoinsService {

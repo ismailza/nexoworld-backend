@@ -5,8 +5,8 @@ import { CoinsController } from './coins.controller';
 import { CoinsService } from './coins.service';
 
 
-import { Coin } from './coins/entities/coin.entity';
-import { CoinLocation } from './coins/entities/coin-location.entity';
+ import { Coin } from './entities/coin.entity';
+import { CoinLocation } from './entities/coin-location.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Coin, CoinLocation])],

@@ -7,9 +7,9 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
-import { CoinsModule } from './coins.module';
 import { Coin } from './coins/entities/coin.entity';
 import { CoinLocation } from './coins/entities/coin-location.entity';
+import { CoinsModule } from './coins/coins.module';
 
 @Module({
   imports: [
