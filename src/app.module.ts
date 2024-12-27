@@ -7,6 +7,9 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
+import { Coin } from './coins/entities/coin.entity';
+import { CoinLocation } from './coins/entities/coin-location.entity';
+import { CoinsModule } from './coins/coins.module';
 
 @Module({
   imports: [
@@ -23,14 +26,17 @@ import { User } from './user/entities/user.entity';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
         entities: [
-          User
+          User,
+          Coin,
+          CoinLocation
         ],
         synchronize: configService.get('APP_ENV') !== 'production',
       }),
       inject: [ConfigService],
     }),
     AuthModule,
-    UserModule
+    UserModule,
+    CoinsModule
   ],
   controllers: [AppController],
   providers: [AppService],
