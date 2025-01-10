@@ -79,4 +79,12 @@ export class AuthService {
     }
   }
 
+  async getProfile(userId: string): Promise<User> {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new InvalidCredentialsException('User not found');
+    }
+    return user;
+  }
+
 }

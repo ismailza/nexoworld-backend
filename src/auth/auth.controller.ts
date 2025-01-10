@@ -1,10 +1,11 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginRequest } from 'src/interfaces/login-request.interface';
 import { RegisterRequest } from 'src/interfaces/register-request.interface';
 import { AppResponse } from 'src/interfaces/app-response.interface';
 import { RefreshRequest } from 'src/interfaces/refresh-request.interface';
 import { AuthResponse } from 'src/interfaces/auth-response.interface';
+import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -37,6 +38,16 @@ export class AuthController {
       result: response,
       message: 'Token refreshed'
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getProfile(@Request() req) {
+    const user = await this.authService.getProfile(req.user.id);
+    return {
+      success: true,
+      result: user,
+    };
   }
 
 }
