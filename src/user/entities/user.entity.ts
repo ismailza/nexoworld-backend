@@ -29,5 +29,7 @@ export class User implements IUser {
   createdAt: Date;
   @UpdateDateColumn()
   updatedAt: Date;
+  @Column({ default: 0 })
+  xp: number;
 
 }
