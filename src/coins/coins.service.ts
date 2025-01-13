@@ -15,6 +15,10 @@ export class CoinsService {
     private locationRepository: Repository<CoinLocation>,
   ) {}
 
+  async findAll(): Promise<Coin[]> {
+    return this.coinsRepository.find();
+  }
+
   async createCoin(createCoinDto: CreateCoinDto): Promise<Coin> {
     const coin = this.coinsRepository.create(createCoinDto);
     return this.coinsRepository.save(coin);
@@ -30,7 +34,7 @@ export class CoinsService {
     return this.locationRepository.save(location);
   }
 
-  async findNearbyCoins(latitude: number, longitude: number, radiusInMeters: number = 100) {
+  async findNearbyCoins(latitude: number, longitude: number, radiusInMeters: number = 1000) {
     return this.locationRepository
       .createQueryBuilder('location')
       .leftJoinAndSelect('location.coin', 'coin')

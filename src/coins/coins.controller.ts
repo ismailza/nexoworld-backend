@@ -8,6 +8,11 @@ import { CreateCoinDto } from './dto/create-coin.dto';
 export class CoinsController {
   constructor(private readonly coinsService: CoinsService) {}
 
+  @Get()
+  findAll() {
+    return this.coinsService.findAll();
+  }
+
   @Post()
   createCoin(@Body() createCoinDto: CreateCoinDto) {
     return this.coinsService.createCoin(createCoinDto);
