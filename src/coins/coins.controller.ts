@@ -1,4 +1,3 @@
-// src/coins/coins.controller.ts
 import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { CoinsService } from './coins.service';
 import { CreateCoinLocationDto } from './dto/create-coin-location.dto';
