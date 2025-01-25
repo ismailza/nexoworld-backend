@@ -11,4 +11,8 @@ export interface IUser {
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+  level: number;
+  xp: number;
+  ownedCoinsCount: number; // Number of owned coins
+  caughtCoinsCount: number; // Number of caught coins
 }

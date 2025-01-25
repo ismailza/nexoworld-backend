@@ -22,6 +22,8 @@ import { JsonWebTokenError, TokenExpiredError } from '@nestjs/jwt';
   },
   namespace: '/',
   transports: ['websocket', 'polling'],
+  pingInterval: 10000,
+  pingTimeout: 5000,
 })
 export class CoinsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -42,6 +44,7 @@ export class CoinsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.log(`Client connected: ${client.id}`);
       const token = client.handshake.auth.token?.split(' ')[1];
       if (!token) {
+        client.emit('auth_error', { message: 'No token provided', code: 401 });
         client.disconnect();
         return;
       }
@@ -70,8 +73,9 @@ export class CoinsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.disconnect();
       }
     } catch (error) {
-      client.disconnect();
       this.logger.error(`Connection error: ${error.message}`);
+      client.emit('auth_error', { message: 'Connection error', code: 500 });
+      client.disconnect();
     }
   }
 
@@ -83,7 +87,15 @@ export class CoinsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('nearbyCoins')
+  getConnectedUsers(): Map<string, Location> {
+    return this.userLocations;
+  }
+
+  getUserSocket(userId: string): Socket | undefined {
+    return this.connectedClients.get(userId);
+  }
+
+  @SubscribeMessage('getNearbyCoins')
   async handleLocationUpdate(
     @ConnectedSocket() client: Socket,
     @MessageBody() location: Location,
@@ -108,8 +120,58 @@ export class CoinsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit('nearbyCoins', nearbyCoins);
   }
 
-  @SubscribeMessage('message')
-  handleMessage(@MessageBody() message: string): void {
-    this.server.emit('message', message);
+  @SubscribeMessage('getOwnedCoins')
+  async handleOwnedCoins(@ConnectedSocket() client: Socket) {
+    this.logger.log(`Get Owned coins request`);
+
+    const userId = client.data.userId;
+    if (!userId) return;
+
+    // Get owned coins for the user
+    const ownedCoins = await this.coinsService.findOwnedCoins(userId);
+
+    this.logger.log(`Emitting ownedCoins: ${JSON.stringify(ownedCoins)}`);
+
+    // Send nearby coins to the user
+    client.emit('ownedCoins', ownedCoins);
   }
+
+  @SubscribeMessage('catchCoin')
+  async handleCatchCoin(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() coinLocationId: string,
+  ) {
+    const userId = client.data.userId;
+    if (!userId) return;
+
+    try {
+      // Catch the coin
+      const coinLocation = await this.coinsService.catchCoin(
+        coinLocationId,
+        userId,
+      );
+
+      // Notify the user who caught the coin
+      client.emit('coinCaught', coinLocation);
+
+      // Remove the coin from all users' nearby coins
+      this.server.emit('removeNearbyCoin', coinLocationId);
+
+      // Update the user's score
+      const user = await this.coinsService.updateUserScore(
+        userId,
+        coinLocation.coin.type,
+      );
+
+      // Notify the user of their updated score
+      client.emit('scoreUpdated', user);
+    } catch (error) {
+      this.logger.error(`Failed to catch coin: ${error.message}`);
+      client.emit('catchCoinError', {
+        message: 'Failed to catch coin',
+        code: 500,
+      });
+    }
+  }
+
 }
